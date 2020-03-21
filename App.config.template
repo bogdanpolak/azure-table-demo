@@ -1,0 +1,9 @@
+Rename file to App.config and delete this line
+<?xml version="1.0" encoding="utf-8"?>
+<configuration>
+  <appSettings>
+    <add key="AzureAccountName" value="... enter account name ..." />
+    <add key="AzureAccountKey" value="... enter primary key ..." />
+    <add key="AzureTableEndpoint" value="... enter endpoint ..." />
+  </appSettings>
+</configuration>
