@@ -26,6 +26,8 @@ namespace AzureDemo
             else 
                 return "";
         }
+        public LogEntity () {}
+        
         public LogEntity (LogType logType, string message, int level=0)
         {
             LogTypeText = EnumLogTypeToStr(logType);

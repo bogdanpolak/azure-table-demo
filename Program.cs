@@ -6,7 +6,7 @@ using Microsoft.Azure.Cosmos.Table;
 
 namespace AzureDemo
 {
-     class Program
+    class Program
     {
         private List<LogEntity> BuildSampleData()
         {
@@ -49,6 +49,21 @@ namespace AzureDemo
             Console.WriteLine("Inserted {0:D} rows",data.Count);
         }
 
+        private void UpdateOneRow (CloudTable table, string rowKey)
+        {
+            TableResult result = table.Execute(
+                TableOperation.Retrieve<LogEntity>(LogEntity.myPartition, rowKey));
+            if ( result.HttpStatusCode == 200 ) {
+                var entity = (LogEntity)result.Result;
+                entity.Level = 0;
+                table.Execute (
+                    TableOperation.Replace(entity));
+                Console.WriteLine("Updated entity level to 0 for entity rowKey = {0}", rowKey);
+            }
+            else
+                Console.WriteLine("[Error] Entity not found (can't update level) rowKey = {0}", rowKey);
+        }
+
         public void Execute() 
         {
             var connectionString = "DefaultEndpointsProtocol=https;" +
@@ -63,6 +78,7 @@ namespace AzureDemo
             ResetTable(table);
             InsertData(table, BuildSampleData());
             InsertData(table, BuildNewDataForAppend());
+            UpdateOneRow (table, "7b16217a-4046-4c30-81cf-cf46325d5d42");
         }
 
         static void Main(string[] args)
