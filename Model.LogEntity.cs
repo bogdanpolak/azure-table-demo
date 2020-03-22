@@ -5,7 +5,7 @@ namespace AzureDemo
 {
     public enum LogType { Error, Warning, Info, Debug };
 
-    class LogEntity : TableEntity {
+    class LogEntity : TableEntity, ICloneable {
         public string LogTypeText { get; set; }   
         public int Level { get; set; }
         public string Message { get; set; }   
@@ -31,6 +31,10 @@ namespace AzureDemo
             Level = level;
             AssignRowKey();
             AssignPartitionKey();
+        }
+        public object Clone()
+        {
+            return this.MemberwiseClone();
         }
     }
 }
