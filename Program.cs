@@ -19,6 +19,17 @@ namespace AzureDemo
                 new LogEntity(LogType.Info,"Fifth message with level 99",99)
             };
         }
+
+        private List<LogEntity> BuildNewDataForAppend()
+        {
+            return new List<LogEntity>
+            {
+                new LogEntity(LogType.Info,"New message with processing info - just info",10),
+                new LogEntity(LogType.Debug,"Append Debugging message for developers",10),
+                new LogEntity(LogType.Info,"Again just info message",10)
+            };
+        }
+
         private void ResetTable(CloudTable table) 
         {
             if (table.Exists())
@@ -48,8 +59,10 @@ namespace AzureDemo
             CloudTableClient tableClient = storageAccount.CreateCloudTableClient();
             
             CloudTable table = tableClient.GetTableReference("SensorLog");
+
             ResetTable(table);
             InsertData(table, BuildSampleData());
+            InsertData(table, BuildNewDataForAppend());
         }
 
         static void Main(string[] args)
