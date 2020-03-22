@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Threading;
 using System.Configuration;
 using System.Collections.Generic;
 using Microsoft.Azure.Cosmos.Table;
@@ -49,6 +50,18 @@ namespace AzureDemo
             Console.WriteLine("Inserted {0:D} rows",data.Count);
         }
 
+        private string FindRowKey (CloudTable table, string logType, int level)
+        {
+            IList<LogEntity> entities = table.ExecuteQuery(
+                new TableQuery<LogEntity>())
+                    .Where(e => 
+                        e.LogTypeText == logType &&
+                        e.Level == level)
+                    .OrderBy(e => e.Timestamp)
+                    .ToList();
+            return entities.Any() ? entities[0].RowKey : null;
+        }
+
         private void UpdateOneRow (CloudTable table, string rowKey)
         {
             TableResult result = table.Execute(
@@ -64,6 +77,11 @@ namespace AzureDemo
                 Console.WriteLine("[Error] Entity not found (can't update level) rowKey = {0}", rowKey);
         }
 
+        private void DelayProces (int seconds)
+        {
+            Console.WriteLine("Sleep for {0} sec. ...",seconds); 
+            Thread.Sleep(seconds*1000);
+        }
         public void Execute() 
         {
             var connectionString = "DefaultEndpointsProtocol=https;" +
@@ -77,8 +95,14 @@ namespace AzureDemo
 
             ResetTable(table);
             InsertData(table, BuildSampleData());
+            DelayProces(15);
             InsertData(table, BuildNewDataForAppend());
-            UpdateOneRow (table, "7b16217a-4046-4c30-81cf-cf46325d5d42");
+            DelayProces(15);
+            var rowKey = FindRowKey(table,"Debug",1);
+            if (rowKey != null) 
+                UpdateOneRow (table, rowKey);
+            else           
+                Console.WriteLine("RowKey not found");   
         }
 
         static void Main(string[] args)
