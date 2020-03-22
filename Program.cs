@@ -1,54 +1,62 @@
 ﻿using System;
+using System.Linq;
 using System.Configuration;
 using System.Collections.Generic;
 using Microsoft.Azure.Cosmos.Table;
 
 namespace AzureDemo
 {
-    class LogEntity : TableEntity {
-        public int Level { get; set; }
-        public string Message { get; set; }   
-        public void AssignRowKey() => this.RowKey = Guid.NewGuid().ToString();
-        public void AssignPartitionKey() => this.PartitionKey = "part-A001";
-        public LogEntity (int level, string message)
-        {
-            Level = level;
-            Message = message;
-            AssignRowKey();
-            AssignPartitionKey();
-        }
-    }
-    class Program
+     class Program
     {
-        public static void BuildTable(CloudTable table) 
+        private List<LogEntity> BuildSampleData()
         {
-            table.CreateIfNotExists();
-
-            var entitiesList = new List<LogEntity>
+            return new List<LogEntity>
             {
-                new LogEntity(1,"Komunikat pierwszy"),
-                new LogEntity(2,"drugi komunikat z treścią"),
-                new LogEntity(2,"Komunikat trzeci"),
-                new LogEntity(1,"czwarty i trochę dłuższy komunikat")
+                new LogEntity(LogType.Error,"Wykryto błąd (komunikat 1)"),
+                new LogEntity(LogType.Info,"Drugi komunikat z treścią - to tylko informacja",1),
+                new LogEntity(LogType.Debug,"Third message is dedicated for developers",1),
+                new LogEntity(LogType.Warning,"[4] Looks like somethin bad happens, but application is still working",2),
+                new LogEntity(LogType.Info,"Fifth message with level 99",99)
             };
-            
-            foreach (var entity in entitiesList) {
+        }
+        private void ResetTable(CloudTable table) 
+        {
+            if (table.Exists())
+            {
+                table.Delete();
+                Console.WriteLine("Previous table was deleted");
+            }
+            table.CreateIfNotExists();
+            Console.WriteLine("New table was created");
+        }
+
+        private void InsertData(CloudTable table, List<LogEntity> data) 
+        {
+            foreach (LogEntity entity in data) {
                 table.Execute(TableOperation.Insert(entity));
             }
+            Console.WriteLine("Inserted {0:D} rows",data.Count);
         }
-        static void Main(string[] args)
+
+        public void Execute() 
         {
-            ;
             var connectionString = "DefaultEndpointsProtocol=https;" +
                 "AccountName=" + ConfigurationManager.AppSettings["AzureAccountName"] + ";" +
                 "AccountKey=" + ConfigurationManager.AppSettings["AzureAccountKey"] + ";" +
                 "TableEndpoint=" + ConfigurationManager.AppSettings["AzureTableEndpoint"] + ";";
             CloudStorageAccount storageAccount = CloudStorageAccount.Parse(connectionString);
             CloudTableClient tableClient = storageAccount.CreateCloudTableClient();
+            
             CloudTable table = tableClient.GetTableReference("SensorLog");
+            ResetTable(table);
+            InsertData(table, BuildSampleData());
+        }
 
-            Program.BuildTable(table);
-            Console.WriteLine("Hello World!");
+        static void Main(string[] args)
+        {
+            Console.WriteLine("Program started ...");
+            new Program().Execute();
+            Console.WriteLine("Job Done");
         }
     }
 }
