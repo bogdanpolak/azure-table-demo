@@ -3,14 +3,16 @@ using Microsoft.Azure.Cosmos.Table;
 
 namespace AzureDemo
 {
+
     public enum LogType { Error, Warning, Info, Debug };
 
     class LogEntity : TableEntity, ICloneable {
+        public static readonly string myPartition = "part-A001";
         public string LogTypeText { get; set; }   
         public int Level { get; set; }
         public string Message { get; set; }   
         public void AssignRowKey() => this.RowKey = Guid.NewGuid().ToString();
-        public void AssignPartitionKey() => this.PartitionKey = "part-A001";
+        public void AssignPartitionKey() => this.PartitionKey = myPartition;
         public static string EnumLogTypeToStr (LogType logType) 
         {
             if (logType == LogType.Error)
@@ -24,6 +26,8 @@ namespace AzureDemo
             else 
                 return "";
         }
+        public LogEntity () {}
+        
         public LogEntity (LogType logType, string message, int level=0)
         {
             LogTypeText = EnumLogTypeToStr(logType);
