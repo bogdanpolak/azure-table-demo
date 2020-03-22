@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Configuration;
 using System.Collections.Generic;
 using Microsoft.Azure.Cosmos.Table;
@@ -20,10 +20,8 @@ namespace AzureDemo
     }
     class Program
     {
-        public static void BuildTable(CloudTable table) 
+        private void InsertData(CloudTable table) 
         {
-            table.CreateIfNotExists();
-
             var entitiesList = new List<LogEntity>
             {
                 new LogEntity(1,"Komunikat pierwszy"),
@@ -35,20 +33,26 @@ namespace AzureDemo
             foreach (var entity in entitiesList) {
                 table.Execute(TableOperation.Insert(entity));
             }
+            Console.WriteLine("Inserted {0:N} rows",entitiesList.Count);
         }
-        static void Main(string[] args)
+        public void Execute() 
         {
-            ;
             var connectionString = "DefaultEndpointsProtocol=https;" +
                 "AccountName=" + ConfigurationManager.AppSettings["AzureAccountName"] + ";" +
                 "AccountKey=" + ConfigurationManager.AppSettings["AzureAccountKey"] + ";" +
                 "TableEndpoint=" + ConfigurationManager.AppSettings["AzureTableEndpoint"] + ";";
             CloudStorageAccount storageAccount = CloudStorageAccount.Parse(connectionString);
             CloudTableClient tableClient = storageAccount.CreateCloudTableClient();
+            
             CloudTable table = tableClient.GetTableReference("SensorLog");
 
-            Program.BuildTable(table);
-            Console.WriteLine("Hello World!");
+            InsertData(table);
+        }
+
+        static void Main(string[] args)
+        {
+            new Program().Execute();
+            Console.WriteLine("Job Done");
         }
     }
 }
