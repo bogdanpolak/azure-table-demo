@@ -1,39 +1,26 @@
-using System;
+﻿using System;
 using System.Configuration;
 using System.Collections.Generic;
 using Microsoft.Azure.Cosmos.Table;
 
 namespace AzureDemo
 {
-    class LogEntity : TableEntity {
-        public int Level { get; set; }
-        public string Message { get; set; }   
-        public void AssignRowKey() => this.RowKey = Guid.NewGuid().ToString();
-        public void AssignPartitionKey() => this.PartitionKey = "part-A001";
-        public LogEntity (int level, string message)
-        {
-            Level = level;
-            Message = message;
-            AssignRowKey();
-            AssignPartitionKey();
-        }
-    }
-    class Program
+     class Program
     {
         private void InsertData(CloudTable table) 
         {
             var entitiesList = new List<LogEntity>
             {
-                new LogEntity(1,"Komunikat pierwszy"),
-                new LogEntity(2,"drugi komunikat z treścią"),
-                new LogEntity(2,"Komunikat trzeci"),
-                new LogEntity(1,"czwarty i trochę dłuższy komunikat")
+                new LogEntity(LogType.Error,"Wykryto błąd (komunikat 1)"),
+                new LogEntity(LogType.Info,"Drugi komunikat z treścią - to tylko informacja",1),
+                new LogEntity(LogType.Debug,"Third message is dedicated for developers",1),
+                new LogEntity(LogType.Warning,"[4] Looks like somethin bad happens, but application is still working",2)
             };
             
             foreach (var entity in entitiesList) {
                 table.Execute(TableOperation.Insert(entity));
             }
-            Console.WriteLine("Inserted {0:N} rows",entitiesList.Count);
+            Console.WriteLine("Inserted {0:D} rows",entitiesList.Count);
         }
         public void Execute() 
         {
