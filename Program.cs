@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Configuration;
 using System.Collections.Generic;
 using Microsoft.Azure.Cosmos.Table;
@@ -7,24 +8,36 @@ namespace AzureDemo
 {
      class Program
     {
-        private List<LogEntity> DataFactory()
+        private List<LogEntity> BuildSampleData()
         {
             return new List<LogEntity>
             {
                 new LogEntity(LogType.Error,"Wykryto błąd (komunikat 1)"),
                 new LogEntity(LogType.Info,"Drugi komunikat z treścią - to tylko informacja",1),
                 new LogEntity(LogType.Debug,"Third message is dedicated for developers",1),
-                new LogEntity(LogType.Warning,"[4] Looks like somethin bad happens, but application is still working",2)
+                new LogEntity(LogType.Warning,"[4] Looks like somethin bad happens, but application is still working",2),
+                new LogEntity(LogType.Info,"Fifth message with level 99",99)
             };
         }
-        private void InsertData(CloudTable table) 
+        private void ResetTable(CloudTable table) 
         {
-            List<LogEntity> entitiesList = DataFactory();            
-            foreach (var entity in entitiesList) {
+            if (table.Exists())
+            {
+                table.Delete();
+                Console.WriteLine("Previous table was deleted");
+            }
+            table.CreateIfNotExists();
+            Console.WriteLine("New table was created");
+        }
+
+        private void InsertData(CloudTable table, List<LogEntity> data) 
+        {
+            foreach (LogEntity entity in data) {
                 table.Execute(TableOperation.Insert(entity));
             }
-            Console.WriteLine("Inserted {0:D} rows",entitiesList.Count);
+            Console.WriteLine("Inserted {0:D} rows",data.Count);
         }
+
         public void Execute() 
         {
             var connectionString = "DefaultEndpointsProtocol=https;" +
@@ -35,8 +48,8 @@ namespace AzureDemo
             CloudTableClient tableClient = storageAccount.CreateCloudTableClient();
             
             CloudTable table = tableClient.GetTableReference("SensorLog");
-
-            InsertData(table);
+            ResetTable(table);
+            InsertData(table, BuildSampleData());
         }
 
         static void Main(string[] args)
