@@ -7,16 +7,19 @@ namespace AzureDemo
 {
      class Program
     {
-        private void InsertData(CloudTable table) 
+        private List<LogEntity> DataFactory()
         {
-            var entitiesList = new List<LogEntity>
+            return new List<LogEntity>
             {
                 new LogEntity(LogType.Error,"Wykryto błąd (komunikat 1)"),
                 new LogEntity(LogType.Info,"Drugi komunikat z treścią - to tylko informacja",1),
                 new LogEntity(LogType.Debug,"Third message is dedicated for developers",1),
                 new LogEntity(LogType.Warning,"[4] Looks like somethin bad happens, but application is still working",2)
             };
-            
+        }
+        private void InsertData(CloudTable table) 
+        {
+            List<LogEntity> entitiesList = DataFactory();            
             foreach (var entity in entitiesList) {
                 table.Execute(TableOperation.Insert(entity));
             }
@@ -38,6 +41,7 @@ namespace AzureDemo
 
         static void Main(string[] args)
         {
+            Console.WriteLine("Program started ...");
             new Program().Execute();
             Console.WriteLine("Job Done");
         }
